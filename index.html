@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Style Prompt Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .transition-all {
+            transition: all 0.3s ease-in-out;
+        }
+        .tab-btn {
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .tab-btn.active {
+            border-color: #6366f1; /* indigo-500 */
+            color: #e5e7eb; /* gray-200 */
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .option-card {
+            cursor: pointer;
+            border: 2px solid transparent;
+            background-color: #1f2937; /* bg-gray-800 */
+        }
+        .option-card.selected {
+            border-color: #6366f1; /* border-indigo-500 */
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.4);
+            background-color: #374151; /* bg-gray-700 */
+        }
+        .option-card:hover {
+            border-color: #a78bfa; /* border-violet-400 */
+        }
+        .color-sphere {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            position: relative;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
+        }
+        .color-sphere::before {
+            content: '';
+            position: absolute;
+            top: 5%;
+            left: 10%;
+            width: 80%;
+            height: 80%;
+            border-radius: 50%;
+            background: radial-gradient(circle at 50% 40%, rgba(255,255,255,0.7), rgba(255,255,255,0) 60%);
+            transform: rotate(45deg);
+        }
+        .gradient-magenta-cyan { background: radial-gradient(circle at 70% 80%, #f472b6, #22d3ee); }
+        .gradient-blue-pink { background: radial-gradient(circle at 70% 80%, #3b82f6, #ec4899); }
+        .gradient-purple-blue { background: radial-gradient(circle at 70% 80%, #8b5cf6, #3b82f6); }
+        .gradient-green-gold { background: radial-gradient(circle at 70% 80%, #10b981, #f59e0b); }
+        .gradient-orange-purple { background: radial-gradient(circle at 70% 80%, #f97316, #a855f7); }
+        .gradient-rainbow { background: radial-gradient(circle at 70% 80%, #ef4444, #f97316, #eab308, #22c55e, #14b8a6, #8b5cf6); }
+        .gradient-cyberpunk { background: radial-gradient(circle at 70% 80%, #00ffff, #ff00ff); }
+        .gradient-pastel { background: radial-gradient(circle at 70% 80%, #fecdd3, #a5b4fc); }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-4xl bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-2xl shadow-indigo-900/50 p-6 md:p-8 border border-gray-700">
+        
+        <div class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400">Multi-Style Prompt Generator</h1>
+            <p class="text-gray-400 mt-2">Choose a style and generate your perfect prompt.</p>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="border-b border-gray-700 mb-8">
+            <nav class="flex -mb-px space-x-6">
+                <button class="tab-btn py-4 px-1 text-gray-400 font-medium text-lg" data-tab="g-morphism">Chromatic Glassmorphism</button>
+                <button class="tab-btn py-4 px-1 text-gray-400 font-medium text-lg" data-tab="t-noir">Tech Noir</button>
+            </nav>
+        </div>
+
+        <!-- Tab Content -->
+        <div>
+            <!-- Chromatic Glassmorphism Generator -->
+            <div id="g-morphism" class="tab-content">
+                <div class="space-y-8">
+                    <!-- Subject Section -->
+                    <div>
+                        <label class="block text-lg font-semibold text-gray-300 mb-4">1. Choose a Subject</label>
+                        <select id="gm-subject-select" class="form-select w-full bg-gray-900 border border-gray-600 rounded-lg py-2 px-3 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/50 transition-all"></select>
+                        <input type="text" id="gm-custom-subject-input" placeholder="Or enter a custom subject..." class="form-input w-full bg-gray-900 border border-gray-600 rounded-lg py-2 px-3 mt-3 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/50 transition-all">
+                    </div>
+                    <!-- Material Section -->
+                    <div>
+                        <label class="block text-lg font-semibold text-gray-300 mb-4">2. Choose a Material</label>
+                        <div id="gm-material-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+                    </div>
+                    <!-- Color Scheme Section -->
+                    <div>
+                        <label class="block text-lg font-semibold text-gray-300 mb-4">3. Choose a Color Scheme</label>
+                        <div id="gm-color-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-4"></div>
+                    </div>
+                    <!-- Background Color Section -->
+                    <div>
+                        <label class="block text-lg font-semibold text-gray-300 mb-4">4. Choose a Background</label>
+                        <select id="gm-background-select" class="form-select w-full bg-gray-900 border border-gray-600 rounded-lg py-2 px-3 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/50 transition-all">
+                            <option value="a pure black background">Black</option>
+                            <option value="a clean white background">White</option>
+                        </select>
+                    </div>
+                     <!-- Light Direction Section -->
+                    <div>
+                        <label class="block text-lg font-semibold text-gray-300 mb-4">5. Choose a Light Direction</label>
+                        <select id="gm-lighting-select" class="form-select w-full bg-gray-900 border border-gray-600 rounded-lg py-2 px-3 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/50 transition-all"></select>
+                    </div>
+                </div>
+                <div class="mt-10 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button id="gm-generate-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105">Generate Prompt</button>
+                    <button id="gm-random-btn" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105">Generate Random</button>
+                </div>
+                <div class="mt-8">
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Generated Prompt:</label>
+                    <div class="relative">
+                        <textarea id="gm-output-prompt" rows="4" readonly class="w-full bg-gray-900/70 border border-gray-600 rounded-lg p-3 text-gray-300 focus:outline-none resize-none"></textarea>
+                        <button id="gm-copy-btn" class="absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-gray-300 p-2 rounded-lg transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"></path><path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"></path></svg>
+                        </button>
+                    </div>
+                    <div id="gm-copy-msg" class="text-center text-green-400 mt-2 h-5 opacity-0 transition-opacity">Prompt copied to clipboard!</div>
+                </div>
+            </div>
+
+            <!-- Tech Noir Generator -->
+            <div id="t-noir" class="tab-content">
+                <div class="space-y-8">
+                    <!-- Subject Section -->
+                    <div>
+                        <label class="block text-lg font-semibold text-gray-300 mb-4">1. Choose a Subject</label>
+                        <select id="tn-subject-select" class="form-select w-full bg-gray-900 border border-gray-600 rounded-lg py-2 px-3 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/50 transition-all"></select>
+                    </div>
+                    <!-- Lighting Section -->
+                    <div>
+                        <label class="block text-lg font-semibold text-gray-300 mb-4">2. Choose a Lighting Style</label>
+                        <select id="tn-lighting-select" class="form-select w-full bg-gray-900 border border-gray-600 rounded-lg py-2 px-3 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/50 transition-all"></select>
+                    </div>
+                    <!-- Atmosphere Section -->
+                    <div>
+                        <label class="block text-lg font-semibold text-gray-300 mb-4">3. Choose an Atmosphere</label>
+                        <select id="tn-atmosphere-select" class="form-select w-full bg-gray-900 border border-gray-600 rounded-lg py-2 px-3 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/50 transition-all"></select>
+                    </div>
+                     <!-- Color Palette Section -->
+                    <div>
+                        <label class="block text-lg font-semibold text-gray-300 mb-4">4. Choose a Color Palette</label>
+                        <select id="tn-color-select" class="form-select w-full bg-gray-900 border border-gray-600 rounded-lg py-2 px-3 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/50 transition-all"></select>
+                    </div>
+                </div>
+                 <div class="mt-10 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button id="tn-generate-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105">Generate Prompt</button>
+                    <button id="tn-random-btn" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105">Generate Random</button>
+                </div>
+                <div class="mt-8">
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Generated Prompt:</label>
+                    <div class="relative">
+                        <textarea id="tn-output-prompt" rows="4" readonly class="w-full bg-gray-900/70 border border-gray-600 rounded-lg p-3 text-gray-300 focus:outline-none resize-none"></textarea>
+                        <button id="tn-copy-btn" class="absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-gray-300 p-2 rounded-lg transition-all">
+                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"></path><path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"></path></svg>
+                        </button>
+                    </div>
+                    <div id="tn-copy-msg" class="text-center text-green-400 mt-2 h-5 opacity-0 transition-opacity">Prompt copied to clipboard!</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- DATA DEFINITIONS ---
+
+        // Data for Chromatic Glassmorphism
+        const gm_subjects = {
+            "Icons": ["a heart icon", "a play button", "a music note icon", "a settings gear", "a cloud icon"],
+            "Abstract Shapes": ["a geometric knot", "a mobius strip", "interlocking rings", "a floating sphere"],
+            "Text & Numbers": ["the letter 'A'", "the number '7'", "the word 'DREAM'"]
+        };
+        const gm_materials = {
+            "Iridescent / Holographic": ["Iridescent Chrome", "Holographic Glass", "Liquid Metal with Chromatic Dispersion", "Polished Neo-Chrome", "Pearlescent Crystal"],
+            "Clear Glass": ["Refractive Glass with Strong Chromatic Aberration", "Clear Crystal with Rainbow Light Dispersion", "Flawless Quartz with Internal Refractions", "Diamond-Like Material"],
+            "Solid / Glossy": ["Glossy Obsidian with Neon Edges", "Polished Colorful Acrylic", "Bioluminescent Plastic"]
+        };
+        const gm_colors = [
+            { name: "magenta and cyan", cssClass: "gradient-magenta-cyan" }, { name: "electric blue and neon pink", cssClass: "gradient-blue-pink" },
+            { name: "vibrant purple and blue", cssClass: "gradient-purple-blue" }, { name: "emerald green and gold", cssClass: "gradient-green-gold" },
+            { name: "fiery orange and deep purple", cssClass: "gradient-orange-purple" }, { name: "holographic rainbow", cssClass: "gradient-rainbow" },
+            { name: "cyberpunk neon", cssClass: "gradient-cyberpunk" }, { name: "ethereal pastel", cssClass: "gradient-pastel" }
+        ];
+        const gm_lightings = ["dramatic studio lighting from the side", "dramatic studio lighting from above", "dramatic studio lighting from below", "strong backlighting", "soft frontal lighting"];
+        const gm_promptTemplate = "Photorealistic 3D render of {subject}, crafted from {material} with a glowing {color} gradient. {light_direction} creates strong rim lighting and sharp, glossy reflections. The object is isolated on {background}. Cinematic, futuristic, sleek, high-detail, octane render style, CGI.";
+
+        // Data for Tech Noir
+        const tn_subjects = ["a sleek laptop", "a futuristic tablet", "a glowing holographic interface", "a high-end server rack", "a minimalist smartphone"];
+        const tn_lightings = ["dramatic low-key lighting", "cinematic lighting with volumetric rays", "moody lighting with strong rim light", "soft screen glow as the only light source"];
+        const tn_atmospheres = ["tech noir", "cybersecurity aesthetic", "mysterious and tense", "corporate thriller mood", "minimalist and dark"];
+        const tn_colors = ["monochromatic cool blue", "desaturated cyan and gray", "deep blacks with silver highlights", "a dark, muted color palette"];
+        const tn_promptTemplate = "Professional product shot of {subject}. The scene is defined by {lighting} creating a {atmosphere}. The color palette is {color}. In the background, two figures are visible as backlit silhouettes. Photorealistic, 8k, cinematic, sharp focus.";
+
+
+        // --- GENERAL HELPER FUNCTIONS ---
+        function populateSelect(selectElement, data, isGrouped = false) {
+            selectElement.innerHTML = '';
+            if (isGrouped) {
+                for (const groupName in data) {
+                    const optgroup = document.createElement('optgroup');
+                    optgroup.label = groupName;
+                    data[groupName].forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item;
+                        option.textContent = item.charAt(0).toUpperCase() + item.slice(1);
+                        optgroup.appendChild(option);
+                    });
+                    selectElement.appendChild(optgroup);
+                }
+            } else {
+                data.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item;
+                    option.textContent = item.charAt(0).toUpperCase() + item.slice(1);
+                    selectElement.appendChild(option);
+                });
+            }
+        }
+
+        function copyToClipboard(textarea, msgElement) {
+            if (!textarea.value) return;
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = textarea.value;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            try {
+                document.execCommand('copy');
+                msgElement.style.opacity = '1';
+                setTimeout(() => { msgElement.style.opacity = '0'; }, 2000);
+            } catch (err) {
+                console.error('Fallback: Oops, unable to copy', err);
+            }
+            document.body.removeChild(tempTextArea);
+        }
+
+        // --- GLASSMORPHISM FUNCTIONS ---
+        const gm_elements = {
+            subjectSelect: document.getElementById('gm-subject-select'),
+            customSubjectInput: document.getElementById('gm-custom-subject-input'),
+            materialGrid: document.getElementById('gm-material-grid'),
+            colorGrid: document.getElementById('gm-color-grid'),
+            backgroundSelect: document.getElementById('gm-background-select'),
+            lightingSelect: document.getElementById('gm-lighting-select'),
+            generateBtn: document.getElementById('gm-generate-btn'),
+            randomBtn: document.getElementById('gm-random-btn'),
+            outputPrompt: document.getElementById('gm-output-prompt'),
+            copyBtn: document.getElementById('gm-copy-btn'),
+            copyMsg: document.getElementById('gm-copy-msg'),
+        };
+
+        function createGmOptionCards(container, data, isColor = false) {
+            container.innerHTML = '';
+            let materialId = 1;
+            if (isColor) {
+                data.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'option-card flex flex-col items-center p-3 rounded-lg transition-all';
+                    card.dataset.value = item.name;
+                    const sphere = document.createElement('div');
+                    sphere.className = `color-sphere mb-2 ${item.cssClass}`;
+                    const label = document.createElement('span');
+                    label.className = 'text-xs text-center text-gray-300';
+                    label.textContent = item.name.charAt(0).toUpperCase() + item.name.slice(1);
+                    card.appendChild(sphere); card.appendChild(label);
+                    card.addEventListener('click', () => {
+                        Array.from(container.children).forEach(child => child.classList.remove('selected'));
+                        card.classList.add('selected');
+                    });
+                    container.appendChild(card);
+                });
+            } else {
+                for (const group in data) {
+                    data[group].forEach(item => {
+                        const card = document.createElement('div');
+                        card.className = 'option-card flex flex-col items-center p-3 rounded-lg transition-all';
+                        card.dataset.value = item;
+                        const img = document.createElement('img');
+                        img.src = `images/${materialId}.png`; img.alt = item;
+                        img.className = 'w-24 h-24 object-cover rounded-md mb-2 bg-gray-700';
+                        img.onerror = () => { img.style.display = 'none'; };
+                        const label = document.createElement('span');
+                        label.className = 'text-xs text-center text-gray-300'; label.textContent = item;
+                        card.appendChild(img); card.appendChild(label);
+                        card.addEventListener('click', () => {
+                            Array.from(container.children).forEach(child => child.classList.remove('selected'));
+                            card.classList.add('selected');
+                        });
+                        container.appendChild(card);
+                        materialId++;
+                    });
+                }
+            }
+        }
+
+        function generateGmPrompt() {
+            const subject = gm_elements.customSubjectInput.value.trim() || gm_elements.subjectSelect.value;
+            const selectedMaterial = gm_elements.materialGrid.querySelector('.selected');
+            const selectedColor = gm_elements.colorGrid.querySelector('.selected');
+            if (!selectedMaterial || !selectedColor) { alert("Please select a material and a color scheme."); return; }
+            const material = selectedMaterial.dataset.value;
+            const color = selectedColor.dataset.value;
+            const background = gm_elements.backgroundSelect.value;
+            const lightDirection = gm_elements.lightingSelect.value;
+            gm_elements.outputPrompt.value = gm_promptTemplate
+                .replace('{subject}', subject)
+                .replace('{material}', material)
+                .replace('{color}', color)
+                .replace('{light_direction}', lightDirection)
+                .replace('{background}', background);
+        }
+        
+        function randomGmPrompt() {
+            gm_elements.customSubjectInput.value = '';
+            const materialCards = gm_elements.materialGrid.querySelectorAll('.option-card');
+            const colorCards = gm_elements.colorGrid.querySelectorAll('.option-card');
+            Array.from(materialCards).forEach(c => c.classList.remove('selected'));
+            Array.from(colorCards).forEach(c => c.classList.remove('selected'));
+            materialCards[Math.floor(Math.random() * materialCards.length)].classList.add('selected');
+            colorCards[Math.floor(Math.random() * colorCards.length)].classList.add('selected');
+            gm_elements.subjectSelect.selectedIndex = Math.floor(Math.random() * gm_elements.subjectSelect.options.length);
+            gm_elements.backgroundSelect.selectedIndex = Math.floor(Math.random() * gm_elements.backgroundSelect.options.length);
+            gm_elements.lightingSelect.selectedIndex = Math.floor(Math.random() * gm_elements.lightingSelect.options.length);
+            generateGmPrompt();
+        }
+
+        // --- TECH NOIR FUNCTIONS ---
+        const tn_elements = {
+            subjectSelect: document.getElementById('tn-subject-select'),
+            lightingSelect: document.getElementById('tn-lighting-select'),
+            atmosphereSelect: document.getElementById('tn-atmosphere-select'),
+            colorSelect: document.getElementById('tn-color-select'),
+            generateBtn: document.getElementById('tn-generate-btn'),
+            randomBtn: document.getElementById('tn-random-btn'),
+            outputPrompt: document.getElementById('tn-output-prompt'),
+            copyBtn: document.getElementById('tn-copy-btn'),
+            copyMsg: document.getElementById('tn-copy-msg'),
+        };
+
+        function generateTnPrompt() {
+            const subject = tn_elements.subjectSelect.value;
+            const lighting = tn_elements.lightingSelect.value;
+            const atmosphere = tn_elements.atmosphereSelect.value;
+            const color = tn_elements.colorSelect.value;
+            tn_elements.outputPrompt.value = tn_promptTemplate.replace('{subject}', subject).replace('{lighting}', lighting).replace('{atmosphere}', atmosphere).replace('{color}', color);
+        }
+
+        function randomTnPrompt() {
+            tn_elements.subjectSelect.selectedIndex = Math.floor(Math.random() * tn_elements.subjectSelect.options.length);
+            tn_elements.lightingSelect.selectedIndex = Math.floor(Math.random() * tn_elements.lightingSelect.options.length);
+            tn_elements.atmosphereSelect.selectedIndex = Math.floor(Math.random() * tn_elements.atmosphereSelect.options.length);
+            tn_elements.colorSelect.selectedIndex = Math.floor(Math.random() * tn_elements.colorSelect.options.length);
+            generateTnPrompt();
+        }
+
+        // --- INITIAL SETUP & EVENT LISTENERS ---
+        window.onload = () => {
+            // Tab switching logic
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    const tabId = button.dataset.tab;
+                    tabContents.forEach(content => {
+                        content.id === tabId ? content.classList.add('active') : content.classList.remove('active');
+                    });
+                });
+            });
+            
+            // Activate first tab by default
+            document.querySelector('.tab-btn[data-tab="g-morphism"]').click();
+
+            // Setup for Glassmorphism Generator
+            populateSelect(gm_elements.subjectSelect, gm_subjects, true);
+            createGmOptionCards(gm_elements.materialGrid, gm_materials);
+            createGmOptionCards(gm_elements.colorGrid, gm_colors, true);
+            populateSelect(gm_elements.lightingSelect, gm_lightings);
+            gm_elements.generateBtn.addEventListener('click', generateGmPrompt);
+            gm_elements.randomBtn.addEventListener('click', randomGmPrompt);
+            gm_elements.copyBtn.addEventListener('click', () => copyToClipboard(gm_elements.outputPrompt, gm_elements.copyMsg));
+            randomGmPrompt();
+
+            // Setup for Tech Noir Generator
+            populateSelect(tn_elements.subjectSelect, tn_subjects);
+            populateSelect(tn_elements.lightingSelect, tn_lightings);
+            populateSelect(tn_elements.atmosphereSelect, tn_atmospheres);
+            populateSelect(tn_elements.colorSelect, tn_colors);
+            tn_elements.generateBtn.addEventListener('click', generateTnPrompt);
+            tn_elements.randomBtn.addEventListener('click', randomTnPrompt);
+            tn_elements.copyBtn.addEventListener('click', () => copyToClipboard(tn_elements.outputPrompt, tn_elements.copyMsg));
+            randomTnPrompt();
+        };
+    </script>
+</body>
+</html>
